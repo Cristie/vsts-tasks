@@ -218,7 +218,7 @@ describe('Npm Task', function () {
         };
         mockery.registerMock('fs', mockFs);
 
-        let npmrcParser = require('../npmrcparser');
+        let npmrcParser = require('npm-common/npmrcparser');
         let registries = npmrcParser.GetRegistries('');
 
         assert.equal(registries.length, 3);
@@ -291,7 +291,7 @@ describe('Npm Task', function () {
                 'http://localTFSServer/npmRegistry/'
             ]
         };
-        mockery.registerMock('./npmrcparser', mockParser);
+        mockery.registerMock('npm-common/npmrcparser', mockParser);
         let mockTask = {
             getVariable: (v: string) => {
                 if (v === 'System.TeamFoundationCollectionUri') {

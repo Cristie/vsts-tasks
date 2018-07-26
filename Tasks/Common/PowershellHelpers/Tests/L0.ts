@@ -9,7 +9,7 @@ var psm = require('../../../../Tests/lib/psRunner');
 var psr = null;
 
 describe('PowershellHelpers Suite', function () {
-    this.timeout(20000);
+    this.timeout(parseInt(process.env.TASK_TEST_TIMEOUT) || 20000);
 
     before((done) => {
         if (psm.testSupported()) {
@@ -50,6 +50,9 @@ describe('PowershellHelpers Suite', function () {
         })
         it('(Invoke-ActionWithRetries) should handle multiple retryable exceptions', (done) => {
             psr.run(path.join(__dirname, 'Invoke-ActionWithRetries.ShouldHandleMultipleRetryableExceptions.ps1'), done);
+        })
+        it('(Get-TempDirectoryPath) get temp directory', (done) => {
+            psr.run(path.join(__dirname, 'Get-TempDirectoryPath.ps1'), done);
         })
     }
 });

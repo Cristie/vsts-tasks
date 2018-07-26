@@ -36,6 +36,8 @@ export function ToError(response: webClient.WebResponse): AzureError {
         error.code = response.body.error.code;
         error.message = response.body.error.message;
         error.details = response.body.error.details;
+
+        console.log("##vso[task.logissue type=error;code="+error.code+";]");
     }
 
     return error;
@@ -43,12 +45,13 @@ export function ToError(response: webClient.WebResponse): AzureError {
 
 export class ServiceClient {
     private credentials: msRestAzure.ApplicationTokenCredentials;
-    private subscriptionId: string;
     protected apiVersion: string;
     protected baseUri: string;
     protected acceptLanguage: string;
     protected longRunningOperationRetryTimeout: number;
     protected generateClientRequestId: boolean;
+
+    public subscriptionId: string;
 
     constructor(credentials: msRestAzure.ApplicationTokenCredentials, subscriptionId: string, timeout?: number) {
         this.validateInputs(credentials, subscriptionId);
@@ -72,11 +75,11 @@ export class ServiceClient {
         return this.credentials;
     }
 
-    public getRequestUri(uriFormat: string, parameters: {}, queryParameters?: string[]): string {
-        return this.getRequestUriForBaseUri(this.baseUri, uriFormat, parameters, queryParameters);
+    public getRequestUri(uriFormat: string, parameters: {}, queryParameters?: string[], apiVersion?: string): string {
+        return this.getRequestUriForBaseUri(this.baseUri, uriFormat, parameters, queryParameters, apiVersion);
     }
 
-    public getRequestUriForBaseUri(baseUri: string, uriFormat: string, parameters: {}, queryParameters?: string[]): string {
+    public getRequestUriForBaseUri(baseUri: string, uriFormat: string, parameters: {}, queryParameters?: string[], apiVersion?: string): string {
         var requestUri = baseUri + uriFormat;
         requestUri = requestUri.replace('{subscriptionId}', encodeURIComponent(this.subscriptionId));
         for (var key in parameters) {
@@ -89,7 +92,7 @@ export class ServiceClient {
 
         // process query paramerters
         queryParameters = queryParameters || [];
-        queryParameters.push('api-version=' + encodeURIComponent(this.apiVersion));
+        queryParameters.push('api-version=' + encodeURIComponent(apiVersion || this.apiVersion));
         if (queryParameters.length > 0) {
             requestUri += '?' + queryParameters.join('&');
         }
@@ -119,12 +122,26 @@ export class ServiceClient {
         }
         request.headers['Content-Type'] = 'application/json; charset=utf-8';
 
-        var httpResponse = await webClient.sendRequest(request);
-        if (httpResponse.statusCode === 401 && httpResponse.body && httpResponse.body.error && httpResponse.body.error.code === "ExpiredAuthenticationToken") {
-            // The access token might have expire. Re-issue the request after refreshing the token.
-            token = await this.credentials.getToken(true);
-            request.headers["Authorization"] = "Bearer " + token;
+        var httpResponse = null;
+
+        try
+        {
             httpResponse = await webClient.sendRequest(request);
+            if (httpResponse.statusCode === 401 && httpResponse.body && httpResponse.body.error && httpResponse.body.error.code === "ExpiredAuthenticationToken") {
+                // The access token might have expire. Re-issue the request after refreshing the token.
+                token = await this.credentials.getToken(true);
+                request.headers["Authorization"] = "Bearer " + token;
+                httpResponse = await webClient.sendRequest(request);
+            }
+        } catch(exception) {
+            let exceptionString: string = exception.toString();
+            if(exceptionString.indexOf("Hostname/IP doesn't match certificates's altnames") != -1
+                || exceptionString.indexOf("unable to verify the first certificate") != -1
+                || exceptionString.indexOf("unable to get local issuer certificate") != -1) {
+                    tl.warning(tl.loc('ASE_SSLIssueRecommendation'));
+            } 
+
+            throw exception;
         }
 
         return httpResponse;
@@ -143,6 +160,7 @@ export class ServiceClient {
 
         while (true) {
             response = await this.beginRequest(request);
+            tl.debug(`Response status code : ${response.statusCode}`);
             if (response.statusCode === 202 || (response.body && (response.body.status == "Accepted" || response.body.status == "Running" || response.body.status == "InProgress"))) {
                 // If timeout; throw;
                 if (!waitIndefinitely && timeout < new Date().getTime()) {
@@ -161,6 +179,31 @@ export class ServiceClient {
         }
 
         return response;
+    }
+
+    public async beginRequestExpBackoff(request: webClient.WebRequest, maxAttempt: number): Promise<webClient.WebResponse> {
+        var sleepDuration = 1;
+        for(var i = 1; true; i++) {
+            var response : webClient.WebResponse = await this.beginRequest(request);
+            //not a server error;
+            if(response.statusCode <500) {
+                return response;
+            }
+
+            // response of last attempt
+            if(i == maxAttempt) {
+                return response;
+            }
+
+            // Retry after given interval.
+            sleepDuration = sleepDuration + i;
+            if (response.headers["retry-after"]) {
+                sleepDuration = parseInt(response.headers["retry-after"]);
+            }
+
+            tl.debug(tl.loc("RetryingRequest", sleepDuration));
+            await this.sleepFor(sleepDuration);
+        }
     }
 
     public async accumulateResultFromPagedResult(nextLinkUrl: string): Promise<ApiResult> {
@@ -200,6 +243,28 @@ export class ServiceClient {
                 throw new Error(tl.loc("ResourceGroupDoesntMatchPattern"));
             }
         }
+    }
+
+    public isNameValid(name: string): boolean {
+        if (name === null || name === undefined || typeof name.valueOf() !== 'string') {
+            return false;
+        }else{
+            return true;
+        }
+    }
+
+    public getFormattedError(error: any): string {
+        if(error && error.message) {
+            if(error.statusCode) {
+                var errorMessage = typeof error.message.valueOf() == 'string' ? error.message 
+                    : (error.message.Code || error.message.code) + " - " + (error.message.Message || error.message.message)
+                error.message = `${errorMessage} (CODE: ${error.statusCode})`
+            }
+
+            return error.message;
+        }
+
+        return error;
     }
 
     private sleepFor(sleepDurationInSeconds): Promise<any> {

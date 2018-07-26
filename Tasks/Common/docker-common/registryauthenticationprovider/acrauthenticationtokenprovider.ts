@@ -18,10 +18,21 @@ export default class ACRAuthenticationTokenProvider extends AuthenticationTokenP
     constructor(endpointName?: string, registerNameValue?: string) {
         super();
 
-        if(endpointName && registerNameValue) {
-            var obj = JSON.parse(registerNameValue);
-            this.registryURL = obj.loginServer;
-            this.acrFragmentUrl = obj.id;
+        if(endpointName && registerNameValue) 
+        {
+            try
+            {
+              tl.debug("Reading the acr registry in old versions");
+              var obj = JSON.parse(registerNameValue);  
+              this.registryURL = obj.loginServer;
+              this.acrFragmentUrl = obj.id;
+            }  
+            catch(e)
+            {
+              tl.debug("Reading the acr registry in kubernetesV1");
+              this.registryURL = registerNameValue;
+            }
+  
             this.endpointName = endpointName;
         }
     }
@@ -29,7 +40,7 @@ export default class ACRAuthenticationTokenProvider extends AuthenticationTokenP
     public getAuthenticationToken(): RegistryAuthenticationToken
     {
         if(this.registryURL && this.endpointName) {      
-            return new RegistryAuthenticationToken(tl.getEndpointAuthorizationParameter(this.endpointName, 'serviceprincipalid', true), tl.getEndpointAuthorizationParameter(this.endpointName, 'serviceprincipalkey', true), this.registryURL, "ServicePrincipal@AzureRM", "azure/vsts");
+            return new RegistryAuthenticationToken(tl.getEndpointAuthorizationParameter(this.endpointName, 'serviceprincipalid', true), tl.getEndpointAuthorizationParameter(this.endpointName, 'serviceprincipalkey', true), this.registryURL, "ServicePrincipal@AzureRM", this.getXMetaSourceClient());
         }
 
         return null;

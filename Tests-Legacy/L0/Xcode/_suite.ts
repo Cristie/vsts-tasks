@@ -13,7 +13,7 @@ function setResponseFile(name: string) {
 }
 
 describe('Xcode Suite', function() {
-    this.timeout(20000);
+    this.timeout(parseInt(process.env.TASK_TEST_TIMEOUT) || 20000);
 
     before((done) => {
         // init here
@@ -31,20 +31,14 @@ describe('Xcode Suite', function() {
         tr.setInput('configuration', '$(Configuration)');
         tr.setInput('sdk', '$(SDK)');
         tr.setInput('xcWorkspacePath', '**/*.xcodeproj/*.xcworkspace');
-        tr.setInput('scheme', '');
+        tr.setInput('scheme', 'myscheme');
         tr.setInput('packageApp', 'false');
-        tr.setInput('signMethod', 'file');
-        tr.setInput('p12', '/user/build');
-        tr.setInput('p12pwd', '');
-        tr.setInput('provProfile', '/user/build');
-        tr.setInput('removeProfile', 'false');
-        tr.setInput('unlockDefaultKeychain', 'false');
-        tr.setInput('defaultKeychainPassword', '');
-        tr.setInput('iosSigningIdentity', '');
-        tr.setInput('provProfileUuid', '');
+        tr.setInput('signingOption', 'default');
+        tr.setInput('signingIdentity', '');
+        tr.setInput('provisioningProfileUuid', '');
         tr.setInput('args', '');
         tr.setInput('cwd', '/user/build');
-        tr.setInput('outputPattern', 'output/$(SDK)/$(Configuration)');
+        tr.setInput('xcodeVersion', 'default');
         tr.setInput('xcodeDeveloperDir', '');
         tr.setInput('publishJUnitResults', 'false');
 
@@ -52,11 +46,7 @@ describe('Xcode Suite', function() {
         .then(() => {
             assert(tr.ran('/home/bin/xcodebuild -version'), 'xcodebuild for version should have been run.');
             assert(tr.ran('/home/bin/xcodebuild -sdk $(SDK) -configuration $(Configuration) ' +
-                    '-workspace /user/build/fun.xcodeproj/project.xcworkspace build ' +
-                    'DSTROOT=/user/build/output/$(SDK)/$(Configuration)/build.dst ' +
-                    'OBJROOT=/user/build/output/$(SDK)/$(Configuration)/build.obj ' +
-                    'SYMROOT=/user/build/output/$(SDK)/$(Configuration)/build.sym ' +
-                    'SHARED_PRECOMPS_DIR=/user/build/output/$(SDK)/$(Configuration)/build.pch'),
+                    '-workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme myscheme build'),
                 'xcodebuild for building the ios project/workspace should have been run.');
             assert(tr.invokedToolCount == 2, 'should have xcodebuild for version, xcodebuild for build and xcrun for packaging');
             assert(tr.resultWasSet, 'task should have set a result');
@@ -79,18 +69,12 @@ describe('Xcode Suite', function() {
         tr.setInput('xcWorkspacePath', '/user/build');
         tr.setInput('scheme', '');
         tr.setInput('packageApp', 'false');
-        tr.setInput('signMethod', 'file');
-        tr.setInput('p12', '/user/build');
-        tr.setInput('p12pwd', '');
-        tr.setInput('provProfile', '/user/build');
-        tr.setInput('removeProfile', 'false');
-        tr.setInput('unlockDefaultKeychain', 'false');
-        tr.setInput('defaultKeychainPassword', '');
-        tr.setInput('iosSigningIdentity', '');
-        tr.setInput('provProfileUuid', '');
+        tr.setInput('signingOption', 'default');
+        tr.setInput('signingIdentity', '');
+        tr.setInput('provisioningProfileUuid', '');
         tr.setInput('args', '-project test.xcodeproj');
         tr.setInput('cwd', '/user/build');
-        tr.setInput('outputPattern', 'output/$(SDK)/$(Configuration)');
+        tr.setInput('xcodeVersion', 'default');
         tr.setInput('xcodeDeveloperDir', '');
         tr.setInput('publishJUnitResults', 'false');
 
@@ -98,11 +82,7 @@ describe('Xcode Suite', function() {
             .then(() => {
                 assert(tr.ran('/home/bin/xcodebuild -version'), 'xcodebuild for version should have been run.');
                 assert(tr.ran('/home/bin/xcodebuild -sdk $(SDK) -configuration $(Configuration) ' +
-                        'build DSTROOT=/user/build/output/$(SDK)/$(Configuration)/build.dst ' +
-                        'OBJROOT=/user/build/output/$(SDK)/$(Configuration)/build.obj ' +
-                        'SYMROOT=/user/build/output/$(SDK)/$(Configuration)/build.sym ' +
-                        'SHARED_PRECOMPS_DIR=/user/build/output/$(SDK)/$(Configuration)/build.pch ' +
-                        '-project test.xcodeproj'),
+                        'build -project test.xcodeproj'),
                     'xcodebuild for building the ios project should have been run.');
                 assert(tr.invokedToolCount == 2, 'should have xcodebuild for version, xcodebuild for build and xcrun for packaging');
                 assert(tr.resultWasSet, 'task should have set a result');
@@ -123,21 +103,15 @@ describe('Xcode Suite', function() {
         tr.setInput('configuration', '$(Configuration)');
         tr.setInput('sdk', '$(SDK)');
         tr.setInput('xcWorkspacePath', '**/*.xcodeproj/*.xcworkspace');
-        tr.setInput('scheme', '');
+        tr.setInput('scheme', 'myscheme');
         tr.setInput('packageApp', 'false');
-        tr.setInput('signMethod', 'file');
-        tr.setInput('p12', '/user/build');
-        tr.setInput('p12pwd', '');
-        tr.setInput('provProfile', '/user/build');
-        tr.setInput('removeProfile', 'false');
-        tr.setInput('unlockDefaultKeychain', 'false');
-        tr.setInput('defaultKeychainPassword', '');
-        tr.setInput('iosSigningIdentity', '');
-        tr.setInput('provProfileUuid', '');
+        tr.setInput('signingOption', 'default');
+        tr.setInput('signingIdentity', '');
+        tr.setInput('provisioningProfileUuid', '');
         tr.setInput('args', '');
         tr.setInput('cwd', '/user/build');
+        tr.setInput('xcodeVersion', 'default');
         tr.setInput('xcodeDeveloperDir', '');
-        tr.setInput('outputPattern', 'output/$(SDK)/$(Configuration)');
         tr.setInput('useXcpretty', 'true');
         tr.setInput('publishJUnitResults', 'true');
 
@@ -146,16 +120,9 @@ describe('Xcode Suite', function() {
                 assert(tr.ran('/home/bin/xcodebuild -version'), 'xcodebuild for version should have been run.');
 
                 assert(tr.ran('/home/bin/xcodebuild -sdk $(SDK) -configuration $(Configuration) ' +
-                        '-workspace /user/build/fun.xcodeproj/project.xcworkspace test ' +
-                        'DSTROOT=/user/build/output/$(SDK)/$(Configuration)/build.dst ' +
-                        'OBJROOT=/user/build/output/$(SDK)/$(Configuration)/build.obj ' +
-                        'SYMROOT=/user/build/output/$(SDK)/$(Configuration)/build.sym ' +
-                        'SHARED_PRECOMPS_DIR=/user/build/output/$(SDK)/$(Configuration)/build.pch ' +
+                        '-workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme myscheme test ' +
                         '| /home/bin/xcpretty -r junit --no-color'),
                     'xcodebuild for running tests in the ios project/workspace should have been run with xcpretty formatting.');
-
-                assert(tr.stdout.search(/##vso\[results.publish type=JUnit;publishRunAttachments=true;resultFiles=\/user\/build\/build\/reports\/junit.xml;\]/) >= 0,
-                    'publish test results should have been called');
 
                 assert(tr.invokedToolCount == 2, 'should have xcodebuild for version, xcodebuild for test with xcpretty');
                 assert(tr.resultWasSet, 'task should have set a result');
@@ -176,21 +143,15 @@ describe('Xcode Suite', function() {
         tr.setInput('configuration', '$(Configuration)');
         tr.setInput('sdk', '$(SDK)');
         tr.setInput('xcWorkspacePath', '**/*.xcodeproj/*.xcworkspace');
-        tr.setInput('scheme', '');
+        tr.setInput('scheme', 'myscheme');
         tr.setInput('packageApp', 'false');
-        tr.setInput('signMethod', 'file');
-        tr.setInput('p12', '/user/build');
-        tr.setInput('p12pwd', '');
-        tr.setInput('provProfile', '/user/build');
-        tr.setInput('removeProfile', 'false');
-        tr.setInput('unlockDefaultKeychain', 'false');
-        tr.setInput('defaultKeychainPassword', '');
-        tr.setInput('iosSigningIdentity', '');
-        tr.setInput('provProfileUuid', '');
+        tr.setInput('signingOption', 'default');
+        tr.setInput('signingIdentity', '');
+        tr.setInput('provisioningProfileUuid', '');
         tr.setInput('args', '');
         tr.setInput('cwd', '/user/build');
+        tr.setInput('xcodeVersion', 'default');
         tr.setInput('xcodeDeveloperDir', '');
-        tr.setInput('outputPattern', 'output/$(SDK)/$(Configuration)');
         tr.setInput('useXcpretty', 'false');
         tr.setInput('publishJUnitResults', 'true');
 
@@ -199,11 +160,7 @@ describe('Xcode Suite', function() {
                 assert(tr.ran('/home/bin/xcodebuild -version'), 'xcodebuild for version should have been run.');
 
                 assert(tr.ran('/home/bin/xcodebuild -sdk $(SDK) -configuration $(Configuration) ' +
-                        '-workspace /user/build/fun.xcodeproj/project.xcworkspace test ' +
-                        'DSTROOT=/user/build/output/$(SDK)/$(Configuration)/build.dst ' +
-                        'OBJROOT=/user/build/output/$(SDK)/$(Configuration)/build.obj ' +
-                        'SYMROOT=/user/build/output/$(SDK)/$(Configuration)/build.sym ' +
-                        'SHARED_PRECOMPS_DIR=/user/build/output/$(SDK)/$(Configuration)/build.pch'),
+                        '-workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme myscheme test'),
                     'xcodebuild for running tests in the ios project/workspace should have been run without xcpretty formatting.');
 
                 assert(tr.stdout.search(/##vso\[results.publish type=JUnit;publishRunAttachments=true;resultFiles=\/user\/build\/build\/reports\/junit.xml;\]/) < 0,
@@ -238,25 +195,19 @@ describe('Xcode Suite', function() {
             tr.setInput('xcWorkspacePath', '**/*.xcodeproj/*.xcworkspace');
             tr.setInput('scheme', 'fun');
             tr.setInput('packageApp', 'false');
-            tr.setInput('signMethod', 'file');
-            tr.setInput('p12', '/user/build/cert.p12');
-            tr.setInput('p12pwd', 'p12password');
-            tr.setInput('provProfile', '/user/build/testuuid.mobileprovision');
-            tr.setInput('removeProfile', 'false');
-            tr.setInput('unlockDefaultKeychain', 'false');
-            tr.setInput('defaultKeychainPassword', '');
-            tr.setInput('iosSigningIdentity', '');
-            tr.setInput('provProfileUuid', '');
+            tr.setInput('signingOption', 'manual');
+            tr.setInput('signingIdentity', 'iPhone Developer: XcodeTask Tester (HE432Y3E2Q)');
+            tr.setInput('provisioningProfileUuid', 'testuuid');
             tr.setInput('args', '');
             tr.setInput('cwd', '/user/build');
-            tr.setInput('outputPattern', 'output/$(SDK)/$(Configuration)');
+            tr.setInput('xcodeVersion', 'default');
             tr.setInput('xcodeDeveloperDir', '');
             tr.setInput('publishJUnitResults', 'false');
 
             tr.run()
                 .then(() => {
                     assert(tr.ran('/home/bin/xcodebuild -version'), 'xcodebuild for version should have been run.');
-                    assert(tr.ran('/home/bin/xcodebuild -sdk $(SDK) -configuration $(Configuration) -workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme fun build DSTROOT=/user/build/output/$(SDK)/$(Configuration)/build.dst OBJROOT=/user/build/output/$(SDK)/$(Configuration)/build.obj SYMROOT=/user/build/output/$(SDK)/$(Configuration)/build.sym SHARED_PRECOMPS_DIR=/user/build/output/$(SDK)/$(Configuration)/build.pch OTHER_CODE_SIGN_FLAGS=--keychain=/user/build/_xcodetasktmp.keychain CODE_SIGN_IDENTITY=iPhone Developer: XcodeTask Tester (HE432Y3E2Q) PROVISIONING_PROFILE=testuuid'),
+                    assert(tr.ran('/home/bin/xcodebuild -sdk $(SDK) -configuration $(Configuration) -workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme fun build CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=iPhone Developer: XcodeTask Tester (HE432Y3E2Q) PROVISIONING_PROFILE=testuuid PROVISIONING_PROFILE_SPECIFIER='),
                         'xcodebuild for building the ios project/workspace should have been run with signing options.');
                     assert(tr.resultWasSet, 'task should have set a result');
                     assert(tr.stderr.length == 0, 'should not have written to stderr');
@@ -284,26 +235,20 @@ describe('Xcode Suite', function() {
             tr.setInput('xcWorkspacePath', '**/*.xcodeproj/*.xcworkspace');
             tr.setInput('scheme', 'fun');
             tr.setInput('packageApp', 'false');
-            tr.setInput('signMethod', 'file');
-            tr.setInput('p12', '/user/build/cert.p12');
-            tr.setInput('p12pwd', 'p12password');
-            tr.setInput('provProfile', '/user/build');
-            tr.setInput('removeProfile', 'false');
-            tr.setInput('unlockDefaultKeychain', 'false');
-            tr.setInput('defaultKeychainPassword', '');
-            tr.setInput('iosSigningIdentity', '');
-            tr.setInput('provProfileUuid', '');
+            tr.setInput('signingOption', 'manual');
+            tr.setInput('signingIdentity', 'iPhone Developer: XcodeTask Tester (HE432Y3E2Q)');
+            tr.setInput('provisioningProfileUuid', '');
             tr.setInput('args', '');
             tr.setInput('cwd', '/user/build');
-            tr.setInput('outputPattern', 'output/$(SDK)/$(Configuration)');
+            tr.setInput('xcodeVersion', 'default');
             tr.setInput('xcodeDeveloperDir', '');
             tr.setInput('publishJUnitResults', 'false');
 
             tr.run()
                 .then(() => {
                     assert(tr.ran('/home/bin/xcodebuild -version'), 'xcodebuild for version should have been run.');
-                    assert(tr.ran('/home/bin/xcodebuild -sdk $(SDK) -configuration $(Configuration) -workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme fun build DSTROOT=/user/build/output/$(SDK)/$(Configuration)/build.dst OBJROOT=/user/build/output/$(SDK)/$(Configuration)/build.obj SYMROOT=/user/build/output/$(SDK)/$(Configuration)/build.sym SHARED_PRECOMPS_DIR=/user/build/output/$(SDK)/$(Configuration)/build.pch OTHER_CODE_SIGN_FLAGS=--keychain=/user/build/_xcodetasktmp.keychain CODE_SIGN_IDENTITY=iPhone Developer: XcodeTask Tester (HE432Y3E2Q)'),
-                        'xcodebuild for building the ios project/workspace should have been run with signing options with P12 only, no provisioning profile.');
+                    assert(tr.ran('/home/bin/xcodebuild -sdk $(SDK) -configuration $(Configuration) -workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme fun build CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=iPhone Developer: XcodeTask Tester (HE432Y3E2Q) PROVISIONING_PROFILE= PROVISIONING_PROFILE_SPECIFIER='),
+                        'xcodebuild for building the ios project/workspace should have been run with signing options with P12 signing identity, and empty provisioning profile/specifier values that override any values in the pbxproj file.');
                     assert(tr.resultWasSet, 'task should have set a result');
                     assert(tr.stderr.length == 0, 'should not have written to stderr');
                     assert(tr.succeeded, 'task should have succeeded');
@@ -325,25 +270,19 @@ describe('Xcode Suite', function() {
         tr.setInput('xcWorkspacePath', '**/*.xcodeproj/*.xcworkspace');
         tr.setInput('scheme', 'fun');
         tr.setInput('packageApp', 'false');
-        tr.setInput('signMethod', 'file');
-        tr.setInput('p12', '/user/build');
-        tr.setInput('p12pwd', '');
-        tr.setInput('provProfile', '/user/build/testuuid.mobileprovision');
-        tr.setInput('removeProfile', 'false');
-        tr.setInput('unlockDefaultKeychain', 'false');
-        tr.setInput('defaultKeychainPassword', '');
-        tr.setInput('iosSigningIdentity', '');
-        tr.setInput('provProfileUuid', '');
+        tr.setInput('signingOption', 'manual');
+        tr.setInput('signingIdentity', '');
+        tr.setInput('provisioningProfileUuid', 'testuuid');
         tr.setInput('args', '');
         tr.setInput('cwd', '/user/build');
-        tr.setInput('outputPattern', 'output/$(SDK)/$(Configuration)');
+        tr.setInput('xcodeVersion', 'default');
         tr.setInput('xcodeDeveloperDir', '');
         tr.setInput('publishJUnitResults', 'false');
 
         tr.run()
             .then(() => {
                 assert(tr.ran('/home/bin/xcodebuild -version'), 'xcodebuild for version should have been run.');
-                assert(tr.ran('/home/bin/xcodebuild -sdk $(SDK) -configuration $(Configuration) -workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme fun build DSTROOT=/user/build/output/$(SDK)/$(Configuration)/build.dst OBJROOT=/user/build/output/$(SDK)/$(Configuration)/build.obj SYMROOT=/user/build/output/$(SDK)/$(Configuration)/build.sym SHARED_PRECOMPS_DIR=/user/build/output/$(SDK)/$(Configuration)/build.pch PROVISIONING_PROFILE=testuuid'),
+                assert(tr.ran('/home/bin/xcodebuild -sdk $(SDK) -configuration $(Configuration) -workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme fun build CODE_SIGN_STYLE=Manual PROVISIONING_PROFILE=testuuid PROVISIONING_PROFILE_SPECIFIER='),
                     'xcodebuild for building the ios project/workspace should have been run with signing options with provisioning profile only.');
                 assert(tr.resultWasSet, 'task should have set a result');
                 assert(tr.stderr.length == 0, 'should not have written to stderr');
@@ -366,25 +305,19 @@ describe('Xcode Suite', function() {
         tr.setInput('xcWorkspacePath', '**/*.xcodeproj/*.xcworkspace');
         tr.setInput('scheme', 'fun');
         tr.setInput('packageApp', 'false');
-        tr.setInput('signMethod', 'id');
-        tr.setInput('p12', '/user/build');
-        tr.setInput('p12pwd', '');
-        tr.setInput('provProfile', '/user/build');
-        tr.setInput('removeProfile', 'false');
-        tr.setInput('unlockDefaultKeychain', 'true');
-        tr.setInput('defaultKeychainPassword', 'defaultKeychainPWD');
-        tr.setInput('iosSigningIdentity', 'testSignIdentity');
-        tr.setInput('provProfileUuid', 'testUUID');
+        tr.setInput('signingOption', 'manual');
+        tr.setInput('signingIdentity', 'testSignIdentity');
+        tr.setInput('provisioningProfileUuid', 'testUUID');
         tr.setInput('args', '');
         tr.setInput('cwd', '/user/build');
-        tr.setInput('outputPattern', 'output/$(SDK)/$(Configuration)');
+        tr.setInput('xcodeVersion', 'default');
         tr.setInput('xcodeDeveloperDir', '');
         tr.setInput('publishJUnitResults', 'false');
 
         tr.run()
             .then(() => {
                 assert(tr.ran('/home/bin/xcodebuild -version'), 'xcodebuild for version should have been run.');
-                assert(tr.ran('/home/bin/xcodebuild -sdk $(SDK) -configuration $(Configuration) -workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme fun build DSTROOT=/user/build/output/$(SDK)/$(Configuration)/build.dst OBJROOT=/user/build/output/$(SDK)/$(Configuration)/build.obj SYMROOT=/user/build/output/$(SDK)/$(Configuration)/build.sym SHARED_PRECOMPS_DIR=/user/build/output/$(SDK)/$(Configuration)/build.pch CODE_SIGN_IDENTITY=testSignIdentity PROVISIONING_PROFILE=testUUID'),
+                assert(tr.ran('/home/bin/xcodebuild -sdk $(SDK) -configuration $(Configuration) -workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme fun build CODE_SIGN_STYLE=Manual CODE_SIGN_IDENTITY=testSignIdentity PROVISIONING_PROFILE=testUUID PROVISIONING_PROFILE_SPECIFIER='),
                     'xcodebuild for building the ios project/workspace should have been run with signing options.');
                 assert(tr.resultWasSet, 'task should have set a result');
                 assert(tr.stderr.length == 0, 'should not have written to stderr');
@@ -396,7 +329,7 @@ describe('Xcode Suite', function() {
             })
     })
 
-    it('run Xcode with required args not specified', (done) => {
+    it('run Xcode with required arg not specified', (done) => {
      setResponseFile('responseErrorArgs.json');
 
      var tr = new trm.TaskRunner('Xcode', true, true);
@@ -406,45 +339,31 @@ describe('Xcode Suite', function() {
      tr.setInput('xcWorkspacePath', '/user/build');
      tr.setInput('scheme', '');
      tr.setInput('packageApp', 'false');
-     tr.setInput('signMethod', 'file');
-     tr.setInput('p12', '/user/build');
-     tr.setInput('p12pwd', '');
-     tr.setInput('provProfile', '/user/build');
-     tr.setInput('removeProfile', 'false');
-     tr.setInput('unlockDefaultKeychain', 'false');
-     tr.setInput('defaultKeychainPassword', '');
-     tr.setInput('iosSigningIdentity', '');
-     tr.setInput('provProfileUuid', '');
+     tr.setInput('signingOption', 'default');
+     tr.setInput('signingIdentity', '');
+     tr.setInput('provisioningProfileUuid', '');
      tr.setInput('args', '');
      tr.setInput('cwd', '/user/build');
-     tr.setInput('outputPattern', '');
+     tr.setInput('xcodeVersion', 'default');
      tr.setInput('xcodeDeveloperDir', '');
      tr.setInput('publishJUnitResults', 'false');
 
      tr.run()
-         .then(() => {
-             assert(tr.stdout.search(/Input required: outputPattern/) > 0, 'Error should be shown if outputPath is not specified.');
-             tr.setInput('outputPattern', 'output/$(SDK)/$(Configuration)');
-             tr.run()
-                 .then(() => {
-                     assert(tr.stdout.search(/Input required: actions/) > 0, 'Error should be shown if actions are not specified.');
-                     tr.setInput('actions', 'build');
-                     tr.run()
-                        .then(() => {
-                             assert(tr.succeeded, 'Task should have run successfully with required inputs');
-                             done();
-                         })
-                        .fail((err) => {
-                             done(err);
-                         })
-                 })
-                 .fail((err) => {
-                     done(err);
-                 })
-         })
-         .fail((err) => {
-             done(err);
-         })
+        .then(() => {
+            assert(tr.stdout.search(/Input required: actions/) > 0, 'Error should be shown if actions are not specified.');
+            tr.setInput('actions', 'build');
+            tr.run()
+            .then(() => {
+                    assert(tr.succeeded, 'Task should have run successfully with required inputs');
+                    done();
+                })
+            .fail((err) => {
+                    done(err);
+                })
+        })
+        .fail((err) => {
+            done(err);
+        })
     })
 
     it('run Xcode with optional args specified', (done) => {
@@ -457,25 +376,19 @@ describe('Xcode Suite', function() {
         tr.setInput('xcWorkspacePath', '**/*.xcodeproj/*.xcworkspace');
         tr.setInput('scheme', 'fun');
         tr.setInput('packageApp', 'false');
-        tr.setInput('signMethod', 'file');
-        tr.setInput('p12', '/user/build');
-        tr.setInput('p12pwd', '');
-        tr.setInput('provProfile', '/user/build');
-        tr.setInput('removeProfile', 'false');
-        tr.setInput('unlockDefaultKeychain', 'false');
-        tr.setInput('defaultKeychainPassword', '');
-        tr.setInput('iosSigningIdentity', '');
-        tr.setInput('provProfileUuid', '');
+        tr.setInput('signingOption', 'default');
+        tr.setInput('signingIdentity', '');
+        tr.setInput('provisioningProfileUuid', '');
         tr.setInput('args', '-exportArchive -exportPath /user/build/output/iphone/release');
         tr.setInput('cwd', '/user/build');
-        tr.setInput('outputPattern', 'output/iphone/release');
+        tr.setInput('xcodeVersion', 'specifyPath');
         tr.setInput('xcodeDeveloperDir', '/Applications/Xcode5');
         tr.setInput('publishJUnitResults', 'false');
 
         tr.run()
             .then(() => {
                 assert(tr.ran('/home/bin/xcodebuild -version'), 'xcodebuild for version should have been run.');
-                assert(tr.ran('/home/bin/xcodebuild -sdk iphone -configuration Release -workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme fun clean build DSTROOT=/user/build/output/iphone/release/build.dst OBJROOT=/user/build/output/iphone/release/build.obj SYMROOT=/user/build/output/iphone/release/build.sym SHARED_PRECOMPS_DIR=/user/build/output/iphone/release/build.pch -exportArchive -exportPath /user/build/output/iphone/release'),
+                assert(tr.ran('/home/bin/xcodebuild -sdk iphone -configuration Release -workspace /user/build/fun.xcodeproj/project.xcworkspace -scheme fun clean build -exportArchive -exportPath /user/build/output/iphone/release'),
                     'xcodebuild for building the ios project/workspace should have been run with all optional args.');
                 assert(tr.resultWasSet, 'task should have set a result');
                 assert(tr.stderr.length == 0, 'should not have written to stderr');

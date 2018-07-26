@@ -9,7 +9,7 @@ var psm = require('../../../../Tests/lib/psRunner');
 var psr = null;
 
 describe('Common-VstsAzureHelpers_ Suite', function () {
-    this.timeout(20000);
+    this.timeout(parseInt(process.env.TASK_TEST_TIMEOUT) || 20000);
 
     before((done) => {
         if (psm.testSupported()) {
@@ -32,6 +32,9 @@ describe('Common-VstsAzureHelpers_ Suite', function () {
         })
         it('Verify if Get-AzureActiveDirectoryResourceId returns correct URL.', (done) => {
             psr.run(path.join(__dirname, 'Get-AzureActiveDirectoryResourceId.ps1'), done);
+        })
+        it('Get-AzureRMAccessToken should return access token', (done) => {
+            psr.run(path.join(__dirname, 'Get-AzureRMAccessToken.ps1'), done);
         })
     }
 });

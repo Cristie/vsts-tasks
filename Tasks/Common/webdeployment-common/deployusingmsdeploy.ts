@@ -2,6 +2,7 @@ import tl = require('vsts-task-lib/task');
 import fs = require('fs');
 import path = require('path');
 import Q = require('q');
+import { WebDeployArguments, WebDeployResult } from './msdeployutility';
 
 var msDeployUtility = require('./msdeployutility.js');
 var utility = require('./utility.js');
@@ -46,18 +47,18 @@ export async function DeployUsingMSDeploy(webDeployPkg, webAppName, publishingPr
     var retryCount = (retryCountParam && !(isNaN(Number(retryCountParam)))) ? Number(retryCountParam): DEFAULT_RETRY_COUNT; 
     
     try {
-        var shouldContinue = true;
-        while(shouldContinue) {
+        while(true) {
             try {
-                 await executeMSDeploy(msDeployCmdArgs);
-                 shouldContinue = false;
-            } catch (error) {
-                shouldContinue = (msDeployUtility.shouldRetryMSDeploy() && retryCount-- > 0);
-                if(!shouldContinue) {
+                retryCount -= 1;
+                await executeMSDeploy(msDeployCmdArgs);
+                break;
+            }
+            catch (error) {
+                if(retryCount == 0) {
                     throw error;
-                } else {
-                    console.log("Retrying to deploy app service.");
                 }
+                console.log(error);
+                console.log(tl.loc('RetryToDeploy'));
             }
         }
         if(publishingProfile != null) {
@@ -76,6 +77,29 @@ export async function DeployUsingMSDeploy(webDeployPkg, webAppName, publishingPr
             tl.rmRF(setParametersFile, true);
         }
     }
+}
+
+
+export async function executeWebDeploy(WebDeployArguments: WebDeployArguments, publishingProfile: any): Promise<WebDeployResult> {
+    var webDeployArguments = await msDeployUtility.getWebDeployArgumentsString(WebDeployArguments, publishingProfile);
+    try {
+        var msDeployPath = await msDeployUtility.getMSDeployFullPath();
+        var msDeployDirectory = msDeployPath.slice(0, msDeployPath.lastIndexOf('\\') + 1);
+        var pathVar = process.env.PATH;
+        process.env.PATH = msDeployDirectory + ";" + process.env.PATH ;
+        await executeMSDeploy(webDeployArguments);
+    }
+    catch(exception) {
+        var msDeployErrorFilePath = tl.getVariable('System.DefaultWorkingDirectory') + '\\' + 'error.txt';
+        var errorFileContent = tl.exist(msDeployErrorFilePath) ? fs.readFileSync(msDeployErrorFilePath, 'utf-8') : "";
+        return {
+            isSuccess: false,
+            error: errorFileContent,
+            errorCode: msDeployUtility.getWebDeployErrorCode(errorFileContent)
+        } as WebDeployResult;
+    }
+
+    return { isSuccess: true } as WebDeployResult;
 }
 
 function argStringToArray(argString): string[] {

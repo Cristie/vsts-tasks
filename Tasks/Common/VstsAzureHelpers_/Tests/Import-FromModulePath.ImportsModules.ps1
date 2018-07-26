@@ -3,6 +3,8 @@ param()
 
 # Arrange.
 . $PSScriptRoot\..\..\..\..\Tests\lib\Initialize-Test.ps1
+Unregister-Mock Import-Module
+Register-Mock Write-VstsTaskError
 $module = Microsoft.PowerShell.Core\Import-Module $PSScriptRoot\.. -PassThru
 $variableSets = @(
     @{
@@ -42,10 +44,10 @@ foreach ($variableSet in $variableSets) {
     Unregister-Mock Get-Module
     Unregister-Mock Import-Module
     Register-Mock Get-Module { $variableSet.Modules[0] } -- -Name $variableSet.Modules[0].Name -ListAvailable
-    Register-Mock Import-Module { $variableSet.Modules[0] } -- -Name $variableSet.Modules[0].Path -Global -PassThru
+    Register-Mock Import-Module { $variableSet.Modules[0] } -- -Name $variableSet.Modules[0].Path -Global -PassThru -Force
     if ($variableSet.Modules.Length -eq 2) {
         Register-Mock Get-Module { $variableSet.Modules[0] } -- -Name $variableSet.Modules[0].Name
-        Register-Mock Import-Module { $variableSet.Modules[1] } -- -Name $variableSet.Modules[1].Path -Global -PassThru
+        Register-Mock Import-Module { $variableSet.Modules[1] } -- -Name $variableSet.Modules[1].Path -Global -PassThru -Force
     }
 
     # Act.
@@ -53,9 +55,9 @@ foreach ($variableSet in $variableSets) {
 
     # Assert.
     Assert-AreEqual $true $result
-    Assert-WasCalled Import-Module -- -Name $variableSet.Modules[0].Path -Global -PassThru
+    Assert-WasCalled Import-Module -- -Name $variableSet.Modules[0].Path -Global -PassThru -Force
     if ($variableSet.Modules.Length -eq 2) {
-        Assert-WasCalled Import-Module -- -Name $variableSet.Modules[1].Path -Global -PassThru
+        Assert-WasCalled Import-Module -- -Name $variableSet.Modules[1].Path -Global -PassThru -Force
     }
 
     if ($variableSet.Classic) {

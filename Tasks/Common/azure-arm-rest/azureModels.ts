@@ -1,3 +1,5 @@
+import { ApplicationTokenCredentials } from "./azure-arm-common";
+
 export interface AzureBaseObject {
     name?: string;
     id: string;
@@ -164,6 +166,11 @@ export enum ComputeResourceType {
     VirtualMachineScaleSet
 }
 
+export enum Scheme {
+    ManagedServiceIdentity,
+    SPN
+}
+
 export interface StorageAccountSku {
     name: string;
     tier?: string;
@@ -195,4 +202,150 @@ export interface StorageAccount extends AzureBaseObject {
     kind?: string;
     tags?: Map<string, string>;
     properties?: StorageAccountProperties;
+}
+
+export interface AzureEndpoint {
+    subscriptionID: string;
+    subscriptionName: string;
+    servicePrincipalClientID?: string;
+    servicePrincipalKey?: string;
+    tenantID: string;
+    environmentAuthorityUrl: string;
+    url: string;
+    environment: string;
+    activeDirectoryResourceID: string;
+    activeDirectoryAuthority?: string;
+    graphEndpoint?: string;
+    galleryUrl?: string;
+    portalEndpoint?: string;
+    AzureKeyVaultDnsSuffix?: string;
+    AzureKeyVaultServiceEndpointResourceId?: string;
+    msiClientId?: string;
+    scheme?: string;
+    applicationTokenCredentials: ApplicationTokenCredentials;
+}
+
+export interface AzureAppServiceConfigurationDetails {
+    id: string;
+    name: string;
+    type: string;
+    kind?: string;
+    location: string;
+    tags: string;
+    properties?: {[key: string]: any};
+}
+
+export interface WebJob {
+    name: string;
+    status: string;
+    runCommand: string;
+    log_url: string;
+    url: string;
+    type: string;
+}
+
+export interface SiteExtension {
+    id: string;
+    title: string;
+    description: string;
+    extension_url: string;
+    local_path: string;
+    version: string;
+    project_url: string;
+    authors: Array<string>;
+    provisioningState: string;
+    local_is_latest_version: boolean;
+}
+
+export interface WebTest {
+    id?: string;
+    name: string;
+    type: string;
+    location: string;
+    tags: {[key: string]: string},
+    kind?: string,
+    etag?: string;
+    properties?: {[key: string]: any};
+}
+
+
+export interface ApplicationInsights {
+    id?: string;
+    name: string;
+    type: string;
+    location: string;
+    tags: {[key: string]: string},
+    kind?: string,
+    etag?: string;
+    properties?: {[key: string]: any};
+}
+
+export interface AKSClusterProperties {
+    provisioningState: string;
+    kubernetesVersion: string;
+}
+
+export interface AKSCluster extends AzureBaseObject {
+    properties: AKSClusterProperties
+}
+
+export interface AKSClusterAccessProfileProperties {
+    kubeConfig: string;
+}
+
+export interface AKSClusterAccessProfile extends AzureBaseObject {
+    properties: AKSClusterAccessProfileProperties
+}
+
+export interface IThresholdRuleConditionDataSource {
+	"odata.type": string;
+	resourceUri: string;
+	metricName: string;
+}
+
+export interface IThresholdRuleCondition {
+	"odata.type": string; // "Microsoft.Azure.Management.Insights.Models.ThresholdRuleCondition"
+	dataSource: IThresholdRuleConditionDataSource;
+	threshold: string;
+	operator: string;
+	windowSize: string;
+}
+
+export interface IAzureMetricAlertRequestBodyProperties {
+	name: string;
+	description?: string;
+	isEnabled: boolean;
+	condition: IThresholdRuleCondition;
+	actions: IRuleEmailAction[];
+}
+
+export interface IRuleEmailAction {
+	"odata.type": string; //"Microsoft.Azure.Management.Insights.Models.RuleEmailAction",
+	sendToServiceOwners: boolean;
+	customEmails: string[]
+}
+
+export interface IAzureMetricAlertRequestBody {
+	location: string;
+	tags: { [key: string] : string };
+	properties: IAzureMetricAlertRequestBodyProperties;
+}
+
+export interface IMetric {
+	value: string;
+	displayValue: string;
+	unit: string;
+}
+
+export interface IAzureMetricAlertRule {
+	alertName: string;
+	metric: IMetric;
+	thresholdCondition: string;
+	thresholdValue: string;
+	timePeriod: string;
+}
+
+export interface IAzureMetricAlertRulesList {
+	resourceId: string;
+	rules: IAzureMetricAlertRule[];
 }
